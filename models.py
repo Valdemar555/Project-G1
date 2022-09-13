@@ -6,9 +6,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.sqltypes import DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import ForeignKey
+import pathlib as pl
 
 Base = declarative_base()
-
 
 
 class Person(Base):
@@ -22,7 +22,7 @@ class Person(Base):
     address = relationship("Address", cascade="all, delete", backref="person")
     data = relationship("Files", cascade="all, delete", backref="person")
     birthday = Column(DateTime, nullable=True)
-    
+
 
 class Phones(Base):
     """Information about Person phones"""
@@ -52,9 +52,13 @@ class Files(Base):
     __tablename__ = "files"
     id = Column(Integer, primary_key=True)
     file_name = Column(String(50))
-    file_extension = Column(String(50))    
+    file_extension = Column(String(50))
     file_storage_path = Column(String(100))
     person_id = Column(Integer, ForeignKey("person.id", ondelete="CASCADE"))
 
-#engine = create_engine('sqlite:///contacts.db', connect_args={'check_same_thread': False})
-#Base.metadata.create_all(engine) 
+
+def create_db():
+    path = pl.Path("\\\contacts.db")
+    if not path.is_file():
+        engine = create_engine('sqlite:///contacts.db', connect_args={'check_same_thread': False})
+        Base.metadata.create_all(engine)

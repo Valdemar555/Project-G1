@@ -8,14 +8,16 @@ from flask import (
     flash,
     send_from_directory,
 )
+import pathlib as pl
 import os
 from sqlalchemy.orm import sessionmaker
 from werkzeug.utils import secure_filename
-from models import Person, Phones, Address, Files
+import check
+from models import Person, Phones, Address, Files, create_db
 import itertools
 
+create_db()
 UPLOAD_FOLDER = "D:\\учеба\\goit-python\\Python_web\\team\\contacts\\uploads"
-
 LIST_OF_AUDIO_SUFFIX = ["MP3", "OGG", "WAV", "AMR"]
 LIST_OF_ARCHIVES_SUFFIX = ["ZIP", "GZ", "TAR"]
 LIST_OF_IMAGES_SUFFIX = ["JPEG", "PNG", "JPG", "SVG"]
@@ -93,30 +95,32 @@ def finding_contacts():
         if finding_file_name:
             for file in session.query(Files).all():
                 if finding_file_name in file.file_name:
-                    files_list.append(file.file_name)
+                    files_list.append(file)
 
         if person_list and not files_list:
             return render_template("contacts.html", persons=person_list)
 
         if files_list and not person_list:
-            return render_template("contacts.html", information_name=str(files_list))
+            return render_template("contacts.html", information_name=files_list)
 
         if finding_name and not person_list:
             return render_template(
                 "contacts.html",
-                information_name=f"Sorry no {finding_name} in persons name",
+                information_name_warning=f"Sorry no {finding_name} in persons name",
             )
 
         if finding_file_name and not files_list:
             return render_template(
                 "contacts.html",
-                information_name=f"Sorry no {finding_file_name} in persons files",
+                information_name_warning=f"Sorry no {finding_file_name} in persons files",
             )
 
         if files_list and person_list:
             return render_template(
                 "contacts.html", persons=person_list, information_name=files_list
             )
+        if not finding_file_name and not finding_name:
+            return render_template("contacts.html")
 
 
 @app.route("/birthday", methods=["GET"], strict_slashes=False)
@@ -159,6 +163,9 @@ def showing_contacts():
             return render_template(
                 "contacts.html", persons=persons, information_name=None
             )
+        else:
+            return render_template("contacts.html")
+
 
 
 # information about contact details
@@ -178,9 +185,18 @@ def add_person_and_details():
     excist = 0
     if request.method == "POST":
         person_name = request.form.get("name")
-        person_birthday = request.form.get("birthday")
-        person_phone = request.form.get("phones")
-        person_email = request.form.get("email")
+        
+        #check birthday
+        raw_birthday = request.form.get("birthday")
+        
+        person_birthday=raw_birthday
+        #check phones
+        raw_phone = request.form.get("phones")
+
+        
+        #check emails
+        raw_email = request.form.get("email")
+
         person_country = request.form.get("country")
         person_city = request.form.get("city")
         person_street = request.form.get("street")
@@ -200,12 +216,19 @@ def add_person_and_details():
                     ).date()
                     person.birthday = dt_birthday
 
-                if person_phone and person.phones:
-                    person.phones.append(Phones(phone=person_phone))
-                if person_phone and not person.phones:
-                    person.phones = [(Phones(phone=person_phone))]
+                if raw_phone:
+                    phone=check.PhoneParser()
+                    phone.string = raw_phone
+                    person_phone = phone.parse_string()
+                    if person.phones:                    
+                        person.phones.append(Phones(phone=person_phone))
+                    if not person.phones:
+                        person.phones = [(Phones(phone=person_phone))]
 
-                if person_email:
+                if raw_email:
+                    email=check.EmailParser()
+                    email.string = raw_email
+                    person_email = email.parse_string()
                     person.email = person_email
 
                 if (
@@ -257,12 +280,17 @@ def add_person_and_details():
                 person.birthday = dt_birthday
                 session.add(person)
 
-            if person_phone:
-                person.phones.append(Phones(phone=person_phone))
-                print(person_phone)
+            if raw_phone:
+                phone=check.PhoneParser()
+                phone.string = raw_phone
+                person_phone = phone.parse_string()                
+                person.phones.append(Phones(phone=person_phone))                
                 session.add(person)
 
-            if person_email:
+            if raw_email:
+                email=check.EmailParser()
+                email.string = raw_email
+                person_email = email.parse_string()                
                 person.email = person_email
 
             if (
@@ -291,13 +319,17 @@ def add_person_and_details():
 
 def allowed_file(filename):
     """Функция проверки расширения файла"""
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+    return "." in filename and filename.rsplit(".", 1)[1].upper() in ALLOWED_EXTENSIONS
 
 
 @app.route("/uploads/<person_id>", methods=["GET", "POST"], strict_slashes=False)
 # adding person and details
 def upload_file(person_id):
     if request.method == "POST" and int(person_id):
+        path = pl.Path(UPLOAD_FOLDER)
+        if not path.exists():
+            os.mkdir(UPLOAD_FOLDER)
+
         if "file" not in request.files:
             flash("Не могу прочитать файл")
             return redirect(request.url)
@@ -305,7 +337,7 @@ def upload_file(person_id):
         if file.filename == "":
             flash("Нет выбранного файла")
             return redirect(request.url)
-        if file and allowed_file(file.filename):
+        if file and allowed_file(file.filename):            
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
             person = session.query(Person).filter(Person.id == person_id).first()
@@ -330,8 +362,12 @@ def upload_file(person_id):
 
             session.add(person)
             session.commit()
-
+       
+        
             return redirect("/contacts")
+        
+        if file and not allowed_file(file.filename):
+            return "Расширение не поддерживается"
     return """
     <!doctype html>
     <title>Загрузить новый файл</title>
