@@ -17,7 +17,14 @@ from models import Person, Phones, Address, Files, create_db
 import itertools
 
 create_db()
-UPLOAD_FOLDER = "D:\\учеба\\goit-python\\Python_web\\team\\contacts\\uploads"
+
+directory = "uploads"
+current_path = os.getcwd()
+ful_path= os.path.abspath(os.path.join(current_path, os.pardir))
+UPLOAD_FOLDER = os.path.abspath(os.path.join(ful_path, directory))
+
+
+
 LIST_OF_AUDIO_SUFFIX = ["MP3", "OGG", "WAV", "AMR"]
 LIST_OF_ARCHIVES_SUFFIX = ["ZIP", "GZ", "TAR"]
 LIST_OF_IMAGES_SUFFIX = ["JPEG", "PNG", "JPG", "SVG"]
@@ -128,29 +135,32 @@ def days_to_birthday():
     persons_with_birthday = session.query(Person).all()
     current_time = datetime.now()
     list_of_contacts_with_birthday = []
-    for person_birthday in persons_with_birthday:
-        if person_birthday.birthday:
-            happy_birthday = datetime(
-                year=current_time.year,
-                month=person_birthday.birthday.month,
-                day=person_birthday.birthday.day,
-            )
-            if happy_birthday.month > current_time.month:
-                days_to_birthday = happy_birthday - current_time
-                a = days_to_birthday.days
-                list_of_contacts_with_birthday.append(
-                    [person_birthday.name, a, person_birthday.id]
+    if persons_with_birthday:
+        for person_birthday in persons_with_birthday:
+            if person_birthday.birthday:
+                happy_birthday = datetime(
+                    year=current_time.year,
+                    month=person_birthday.birthday.month,
+                    day=person_birthday.birthday.day,
                 )
-            else:
-                days_to_birthday = current_time - happy_birthday
-                b = 365 - days_to_birthday.days
-                list_of_contacts_with_birthday.append(
-                    [person_birthday.name, b, person_birthday.id]
+                if happy_birthday.month >= current_time.month:
+                    days_to_birthday = happy_birthday - current_time
+                    a = days_to_birthday.days
+                    list_of_contacts_with_birthday.append(
+                        [person_birthday.name, a, person_birthday.id]
+                    )
+                else:
+                    days_to_birthday = current_time - happy_birthday
+                    b = 365 - days_to_birthday.days
+                    list_of_contacts_with_birthday.append(
+                        [person_birthday.name, b, person_birthday.id]
+                    )
+                sorted_list = sorted(
+                    list_of_contacts_with_birthday, key=lambda days: days[1]
                 )
-            sorted_list = sorted(
-                list_of_contacts_with_birthday, key=lambda days: days[1]
-            )
-    return render_template("birthday.html", persons=sorted_list)
+        return render_template("birthday.html", persons=sorted_list)
+    else:
+       return render_template("birthday.html")     
 
 
 # contact index page
@@ -326,9 +336,9 @@ def allowed_file(filename):
 # adding person and details
 def upload_file(person_id):
     if request.method == "POST" and int(person_id):
-        path = pl.Path(UPLOAD_FOLDER)
+        path = pl.Path(UPLOAD_FOLDER)               
         if not path.exists():
-            os.mkdir(UPLOAD_FOLDER)
+            os.mkdir(path)
 
         if "file" not in request.files:
             flash("Не могу прочитать файл")
@@ -339,7 +349,7 @@ def upload_file(person_id):
             return redirect(request.url)
         if file and allowed_file(file.filename):            
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            file.save(os.path.join(UPLOAD_FOLDER, filename))
             person = session.query(Person).filter(Person.id == person_id).first()
             if person.data:
                 person.data.append(
