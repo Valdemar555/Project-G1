@@ -20,6 +20,10 @@ import check
 from models import Person, Phones, Address, Files, create_db
 import itertools
 
+gauth = GoogleAuth()
+#gauth.LocalWebserverAuth()
+drive = GoogleDrive(gauth)
+
 create_db()
 UPLOAD_FOLDER = "D:\\учеба\\goit-python\\Python_web\\team\\contacts\\uploads"
 LIST_OF_AUDIO_SUFFIX = ["MP3", "OGG", "WAV", "AMR"]
@@ -344,6 +348,12 @@ def upload_file(person_id):
         if file and allowed_file(file.filename):            
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            file1 = drive.CreateFile({'parents': [{'id': '295183743500-q4qmgn62j06fmp1gd57boob8kvik72v9.apps.googleusercontent.com'}]})            
+            file1.SetContentFile(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            file1.Upload()
+            file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
+            for file1 in file_list:
+                print('title: %s, id: %s' % (file1['title'], file1['id']))
             person = session.query(Person).filter(Person.id == person_id).first()
             if person.data:
                 person.data.append(
