@@ -1,6 +1,6 @@
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
-
+import sys
 
 from datetime import datetime
 from sqlalchemy import create_engine
@@ -348,12 +348,22 @@ def upload_file(person_id):
         if file and allowed_file(file.filename):            
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-            file1 = drive.CreateFile({'parents': [{'id': '295183743500-q4qmgn62j06fmp1gd57boob8kvik72v9.apps.googleusercontent.com'}]})            
-            file1.SetContentFile(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-            file1.Upload()
-            file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
-            for file1 in file_list:
-                print('title: %s, id: %s' % (file1['title'], file1['id']))
+            #gfile = drive.CreateFile({'parents': [{'id': "295183743500-q4qmgn62j06fmp1gd57boob8kvik72v9.apps.googleusercontent.com"}]})
+            #gfile.SetContentFile(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            #gfile.Upload()          
+            #file1.SetContentFile(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            #file1.Upload()
+            #file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
+            folder_name = 'My_new_folder'
+            folder_metadata = {'title' : folder_name, 'mimeType' : 'application/vnd.google-apps.folder'}
+            folder = drive.CreateFile(folder_metadata)
+            folder.Upload()
+
+            # Upload file to folder
+            folderid = folder['id']
+            gfile = drive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": folderid}]})
+            gfile.SetContentFile(os.path.join(pl.Path(UPLOAD_FOLDER), filename))
+            gfile.Upload()
             person = session.query(Person).filter(Person.id == person_id).first()
             if person.data:
                 person.data.append(
@@ -435,4 +445,4 @@ if __name__ == "__main__":
     app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
     app.debug = True
     app.env = "development"
-    app.run()
+    app.run(host='localhost', port=8080)

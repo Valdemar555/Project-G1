@@ -8,6 +8,7 @@ from flask import (
     flash,
     send_from_directory,
 )
+from flask_docs import ApiDoc
 import pathlib as pl
 import os
 from sqlalchemy.orm import sessionmaker
@@ -155,7 +156,7 @@ def days_to_birthday():
                     list_of_contacts_with_birthday.append(
                         [person_birthday.name, b, person_birthday.id]
                     )
-                sorted_list = sorted(
+            sorted_list = sorted(
                     list_of_contacts_with_birthday, key=lambda days: days[1]
                 )
         return render_template("birthday.html", persons=sorted_list)
