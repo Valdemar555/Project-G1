@@ -13,7 +13,7 @@ import os
 from sqlalchemy.orm import sessionmaker
 from werkzeug.utils import secure_filename
 import check
-from models import Person, Phones, Address, Files, create_db
+from models import Person, Phones, Address, Files, Note, Tag, create_db
 import itertools
 
 create_db()
@@ -424,7 +424,124 @@ def edit_phone(id):
         old_phone = session.query(Phones).filter(Phones.id == id).first()
         return render_template("phones.html", phone=old_phone.phone)
 
+@app.route('/note_information', strict_slashes=False)
+def index_note():
+    notes = session.query(Note).all()
+    
+    return render_template('note_information.html', notes=notes)
 
+@app.route("/delete/note/<id>", strict_slashes=False)
+def delete_note(id):
+    session.query(Note).filter(Note.id == id).delete()
+    session.commit()
+
+    return redirect("/note_information")
+
+@app.route("/done/<id>", strict_slashes=False)
+def done(id):
+    session.query(Note).filter(Note.id == id).first().done = True
+    session.commit()
+    return redirect("/note_information")
+
+@app.route("/note/", methods=["GET", "POST"], strict_slashes=False)
+def add_note():
+    if request.method == "POST":
+        name = request.form.get("name")
+        description = request.form.get("description")
+        tags = request.form.getlist("tags")
+        tags_obj = []
+        for tag in tags:
+            tags_obj.append(session.query(Tag).filter(Tag.name == tag).first())
+        note = Note(name=name, description=description, tags=tags_obj)
+        session.add(note)
+        session.commit()
+        return redirect("/note_information")
+    else:
+        tags = session.query(Tag).all()
+
+    return render_template("note.html", tags=tags)
+
+
+@app.route("/tag/", methods=["GET", "POST"], strict_slashes=False)
+def add_tag():
+    if request.method == "POST":
+        name = request.form.get("name")
+        tag = Tag(name=name)
+        session.add(tag)
+        session.commit()
+        return redirect("/note_information")
+
+    return render_template("tag.html")
+
+@app.route('/edit_note/<id>', methods=['GET', 'POST'], strict_slashes=False)
+def note_edit(id):
+    old_note = session.query(Note).filter(Note.id == id).first()
+    if request.method == "POST":        
+        new_name = request.form.get("name")
+        description = request.form.get("description")
+        tags = request.form.getlist("tags")
+        tags_obj = []
+        for tag in tags:
+            tags_obj.append(session.query(Tag).filter(Tag.name == tag).first())
+        old_note.name = new_name
+        old_note.description = description
+        old_note.tags = tags_obj
+        session.add(old_note)
+        session.commit()
+        return redirect("/edit_note")
+    else:
+        tags = session.query(Tag).all()
+
+    return render_template('edit_note.html', tags=tags, note=old_note)
+
+@app.route("/note", methods=["POST"], strict_slashes=False)
+@app.route("/note_detalis/", methods=["GET"], strict_slashes=False)
+# find note
+def finding_notes():
+    if request.method == "POST":
+        finding_name = request.form.get("find_name")
+        finding_note_name = request.form.get("find_note")
+        person_list = []
+        note_list = []
+   
+    if finding_name:
+        for person in session.query(Person).all():
+            if finding_name in person.name:
+                person_list.append(person)
+
+    if finding_note_name:
+        for note in session.query(Note).all():
+            if finding_note_name in note.name:
+                note_list.append(note)
+
+    if person_list and not note_list:
+        return render_template("contacts.html", persons=person_list)
+
+    if note_list and not person_list:
+        return render_template("note.html", information_note=note_list)
+
+    if finding_name and not person_list:
+        return render_template(
+             "contacts.html",
+            information_name_warning=f"Sorry no {finding_name} in persons name",
+            )
+
+    if finding_note_name and not note_list:
+        return render_template(
+            "contacts.html",
+            information_name_warning=f"Sorry no {finding_note_name} in persons notes",
+            )
+
+    if note_list and person_list:
+        return render_template(
+            "note.html", persons=person_list, information_note=note_list
+            )
+    if not finding_note_name and not finding_name:
+        return render_template("note.html")
+
+
+        
+    
 if __name__ == "__main__":
     app.secret_key = "super secret key"
     # app.config['SESSION_TYPE'] = "filesystem"

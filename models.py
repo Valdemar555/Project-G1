@@ -1,12 +1,13 @@
 """
 Models
 """
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import create_engine, Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.sqltypes import DateTime
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql.schema import ForeignKey
+from sqlalchemy.sql.schema import ForeignKey, Table
 import pathlib as pl
+from datetime import datetime
 
 Base = declarative_base()
 
@@ -56,6 +57,35 @@ class Files(Base):
     file_storage_path = Column(String(100))
     person_id = Column(Integer, ForeignKey("person.id", ondelete="CASCADE"))
 
+""" table for joins many2many"""
+note_m2m_tag = Table(
+    "note_m2m_tag",
+    Base.metadata,
+    Column("id", Integer, primary_key=True),
+    Column("note", Integer, ForeignKey("notes.id")),
+    Column("tag", Integer, ForeignKey("tags.id")),
+)
+
+
+class Note(Base):
+    """Information about note"""
+    __tablename__ = "notes"
+    id = Column(Integer, primary_key=True)
+    name = Column(String(50), nullable=False)
+    created = Column(DateTime, default=datetime.now())
+    description = Column(String(150), nullable=False)
+    done = Column(Boolean, default=False)
+    tags = relationship("Tag", secondary=note_m2m_tag, backref="notes")
+    person_id = Column(Integer, ForeignKey("person.id", ondelete="CASCADE"))
+
+class Tag(Base):
+    """Information about tag"""
+    __tablename__ = "tags"
+    id = Column(Integer, primary_key=True)
+    name = Column(String(50), nullable=False, unique=True)
+
+    def __repr__(self) -> str:
+        return self.name
 
 def create_db():
     path = pl.Path("\\\contacts.db")

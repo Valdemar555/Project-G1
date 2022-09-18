@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css" />
+    <title>Note information</title>
+
+<body>
+    <div class="container">
+        <nav style="margin-bottom: 20px; padding-left: 30px">
+            <a href="/">Go back to the main page</a>
+        </nav>
+    </div>
+    <main class="container">
+        <div>
+            <h1>Add Note</h1>
+            </div>
+            <a href="/tag/" role="button">Add tag</a>
+        </div>
+        <br>           
+        <form method="POST">
+            <div class="container">
+                <label>Find person name</label>
+                <input type="text" name="find_name" />
+                <label>Find note</label>
+                <input type="text" name="find_note" />
+                <br>
+                <div class="grid">
+                    <button type="reset">Reset</button>
+                    <button type="submit">Submit</button>
+                </div>
+            </div>
+        </form>
+        <form method="GET">
+        {%if information_name_warning %} {{information_name_warning}} {% endif %}
+        {%if information_note %} {% for i in information_note%}
+        {{i.name}}
+        {{i.tags}}              
+        {%endfor %}
+        {% endif %}
+        </form>
+        <form method="POST" action="/note">
+            <br>
+            <div>
+                <label>Note title:
+                    <input type="text" name="name" required />
+                </label>
+            </div>
+            <br>
+            <div>
+                <label>Note description:
+                    <input type="text" name="description" required />
+                </label>
+            </div>
+            <br>
+            <div>
+                <label>Select tag:</label>
+                <select name="tags" multiple="multiple" required>
+                    {% for tag in tags %} '
+                    <option value="{{tag.name}}">{{tag.name}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <br>                
+            <div class="grid">
+                <button type="reset">Reset</button>
+                <button type="submit">Submit</button>
+            </div>                
+            </form>     
+        
+    </main>
+</body>
