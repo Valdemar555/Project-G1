@@ -32,7 +32,7 @@
         {% if file %} 
         <li>
         <a  class="outline" >File : {{file[1].file_name}} Category {{file[0]}}</a>     
-        <a href="/download_file/{{file[1].file_name+'.'+file[1].file_extension}}" role="button" style="padding: 1px">Show file</a>       
+        <a href="/download_file/{{file[1].id}}" role="button" style="padding: 1px">Show file</a>       
         </li>       
         {% endif %} 
         {% endfor %}

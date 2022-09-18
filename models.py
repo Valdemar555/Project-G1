@@ -21,8 +21,9 @@ class Person(Base):
     phones = relationship("Phones", cascade="all, delete", backref="person")
     address = relationship("Address", cascade="all, delete", backref="person")
     data = relationship("Files", cascade="all, delete", backref="person")
+    google_data = relationship("GoogleFiles", cascade="all, delete", backref="person")
     birthday = Column(DateTime, nullable=True)
-
+    folder_id = Column(String(200))
 
 class Phones(Base):
     """Information about Person phones"""
@@ -44,6 +45,7 @@ class Address(Base):
     building_number = Column(String(50))
     flat_number = Column(String(50))
     person_id = Column(Integer, ForeignKey("person.id", ondelete="CASCADE"))
+    
 
 
 class Files(Base):
@@ -56,6 +58,15 @@ class Files(Base):
     file_storage_path = Column(String(100))
     person_id = Column(Integer, ForeignKey("person.id", ondelete="CASCADE"))
 
+class GoogleFiles(Base):
+    """Information about Person files"""
+
+    __tablename__ = "googlefiles"
+    id = Column(Integer, primary_key=True)
+    file_name = Column(String(50))
+    file_extension = Column(String(50))
+    file_id = Column(String(100))    
+    person_id = Column(Integer, ForeignKey("person.id", ondelete="CASCADE"))
 
 def create_db():
     path = pl.Path("\\\contacts.db")
