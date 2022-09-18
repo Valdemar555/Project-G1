@@ -39,7 +39,7 @@
       {%if information_name_warning %} {{information_name_warning}} {% endif %}
       {%if information_name %} {% for i in information_name%} 
     <ul>
-      <a File name   href="/download_file/{{i.file_name+'.'+i.file_extension}}" role="button" style="padding: 1px"> {{i.file_name}} </a> 
+      <a File name   href="/download_file/{{i.id}}" role="button" style="padding: 1px"> {{i.file_name}} </a> 
        
     </ul>
     
@@ -51,7 +51,7 @@
           {%if person%}
           <a href="/contact-information/{{person.id}}" role="button" style="padding: 1px">Name:{{person.name}}</a>
           <a href="/uploads/{{person.id}}" role="button" style="padding: 1px">Add file</a>
-          <a href="/delete/{{person.id}}" role="button" style="padding: 1px">Delete person</a>
+          <a href="/contact-delete/{{person.id}}" role="button" style="padding: 1px">Delete person</a>
 
           <a href="/files/{{person.id}}" role="button" style="padding: 1px">Show files</a>
 
