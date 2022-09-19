@@ -424,24 +424,24 @@ def edit_phone(id):
         old_phone = session.query(Phones).filter(Phones.id == id).first()
         return render_template("phones.html", phone=old_phone.phone)
 
-@app.route('/note_information', strict_slashes=False)
+@app.route('/note-information', strict_slashes=False)
 def index_note():
     notes = session.query(Note).all()
     
-    return render_template('note_information.html', notes=notes)
+    return render_template('note-information.html', notes=notes)
 
 @app.route("/delete/note/<id>", strict_slashes=False)
 def delete_note(id):
     session.query(Note).filter(Note.id == id).delete()
     session.commit()
 
-    return redirect("/note_information")
+    return redirect("/note-information")
 
 @app.route("/done/<id>", strict_slashes=False)
 def done(id):
     session.query(Note).filter(Note.id == id).first().done = True
     session.commit()
-    return redirect("/note_information")
+    return redirect("/note-information")
 
 @app.route("/note/", methods=["GET", "POST"], strict_slashes=False)
 def add_note():
@@ -455,7 +455,7 @@ def add_note():
         note = Note(name=name, description=description, tags=tags_obj)
         session.add(note)
         session.commit()
-        return redirect("/note_information")
+        return redirect("/note-information")
     else:
         tags = session.query(Tag).all()
 
@@ -469,14 +469,14 @@ def add_tag():
         tag = Tag(name=name)
         session.add(tag)
         session.commit()
-        return redirect("/note_information")
+        return redirect("/note-information")
 
     return render_template("tag.html")
 
-@app.route('/edit_note/<id>', methods=['GET', 'POST'], strict_slashes=False)
-def note_edit(id):
-    old_note = session.query(Note).filter(Note.id == id).first()
-    if request.method == "POST":        
+@app.route('/edit-note/<note_id>', methods=['GET', 'POST'], strict_slashes=False)
+def note_edit(note_id):
+    old_note = session.query(Note).filter(Note.id == note_id).first()
+    if request.method == "POST":
         new_name = request.form.get("name")
         description = request.form.get("description")
         tags = request.form.getlist("tags")
@@ -488,59 +488,51 @@ def note_edit(id):
         old_note.tags = tags_obj
         session.add(old_note)
         session.commit()
-        return redirect("/edit_note")
+        return render_template('note-information.html')
     else:
-        tags = session.query(Tag).all()
+        tags1 = session.query(Tag).all()
 
-    return render_template('edit_note.html', tags=tags, note=old_note)
+        return render_template('edit-note.html', tags=tags1)
 
-@app.route("/note", methods=["POST"], strict_slashes=False)
-@app.route("/note_detalis/", methods=["GET"], strict_slashes=False)
+@app.route("/find-note", methods=["POST","GET"], strict_slashes=False)
+@app.route("/note-detalis/", methods=["GET"], strict_slashes=False)
 # find note
 def finding_notes():
     if request.method == "POST":
-        finding_name = request.form.get("find_name")
-        finding_note_name = request.form.get("find_note")
-        person_list = []
+        finding_note = request.form.get("find_note")
+        finding_tag_name = request.form.get("find_tag")
         note_list = []
-   
-    if finding_name:
-        for person in session.query(Person).all():
-            if finding_name in person.name:
-                person_list.append(person)
-
-    if finding_note_name:
-        for note in session.query(Note).all():
-            if finding_note_name in note.name:
-                note_list.append(note)
-
-    if person_list and not note_list:
-        return render_template("contacts.html", persons=person_list)
-
-    if note_list and not person_list:
-        return render_template("note.html", information_note=note_list)
-
-    if finding_name and not person_list:
-        return render_template(
-             "contacts.html",
-            information_name_warning=f"Sorry no {finding_name} in persons name",
+        tag_list = []
+        if finding_note:
+            for notes in session.query(Note).all():
+                if finding_note in notes.name:
+                    note_list.append(notes)
+        if finding_tag_name:
+            for tag in session.query(Tag).all():
+                if finding_tag_name in tag.name:
+                    tag_list.append(tag)
+        if note_list and not tag_list:
+            return render_template("find-note.html", info_note=note_list)
+        if tag_list and not note_list:
+            return render_template("find-note.html", info_tag=tag_list)
+        if finding_note and not tag_list:
+            return render_template(
+                "find-note.html",
+                information=f"Sorry no {finding_note} in notes name",
             )
-
-    if finding_note_name and not note_list:
-        return render_template(
-            "contacts.html",
-            information_name_warning=f"Sorry no {finding_note_name} in persons notes",
+        if finding_tag_name and not note_list:
+            return render_template(
+                "find-note.html",
+                information=f"Sorry no {finding_tag_name} in tags",
             )
-
-    if note_list and person_list:
-        return render_template(
-            "note.html", persons=person_list, information_note=note_list
+        if tag_list and note_list:
+            return render_template(
+                "find-note.html", info_note=note_list, info_tag=tag_list
             )
-    if not finding_note_name and not finding_name:
-        return render_template("note.html")
-
-
-        
+        if not finding_tag_name and not finding_note:
+            return render_template("find-note.html")
+    if request.method == "GET":
+        return render_template("note-detalis.html")        
     
 if __name__ == "__main__":
     app.secret_key = "super secret key"

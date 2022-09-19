@@ -19,30 +19,6 @@
             </div>
             <a href="/tag/" role="button">Add tag</a>
         </div>
-        <br>           
-        <form method="POST">
-            <div class="container">
-                <label>Find person name</label>
-                <input type="text" name="find_name" />
-                <label>Find note</label>
-                <input type="text" name="find_note" />
-                <br>
-                <div class="grid">
-                    <button type="reset">Reset</button>
-                    <button type="submit">Submit</button>
-                </div>
-            </div>
-        </form>
-        <form method="GET">
-        {%if information_name_warning %} {{information_name_warning}} {% endif %}
-        {%if information_note %} {% for i in information_note%}
-        {{i.name}}
-        {{i.tags}}              
-        {%endfor %}
-        {% endif %}
-        </form>
-        <form method="POST" action="/note">
-            <br>
             <div>
                 <label>Note title:
                     <input type="text" name="name" required />

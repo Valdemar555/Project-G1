@@ -17,9 +17,11 @@
     <form method="GET">
         {%if information %} {{information}} {% endif %}
         {%if info_note %} {% for i in info_note%}
+        Find {{i.name}}
         {%endfor %}
         {% endif %}
         {%if info_tag %} {% for i in info_tag%}
+        Find {{i.name}}
         {%endfor %}
         {% endif %}
     </form>
