@@ -1,3 +1,4 @@
+# from app.routes.assistant_routes import UPLOAD_FOLDER
 
 # SCRAPPER_PARAMS
 FINTECH_START_URLS = ['https://www.stockworld.com.ua']
@@ -17,3 +18,7 @@ class Config:
 
 	# AUTHENTICATION
 	SECRET_KEY = '9OLWxND4o83j4K4iuopO'
+
+	# OTHER_CONFIGS
+	SESSION_TYPE = 'filesystem'
+

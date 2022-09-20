@@ -30,7 +30,7 @@ def create_app():
 		return User.query.get(int(user_id))
 
 	with app.app_context():
-		from .routes import routes_fintech, routes_currency, auth_routes
+		from .routes import routes_fintech, routes_currency, auth_routes, assistant_routes
 		from . import db_models
 		db.create_all()
 

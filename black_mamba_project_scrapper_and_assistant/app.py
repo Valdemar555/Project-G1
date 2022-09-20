@@ -9,6 +9,7 @@ from scrapper.spiders.currency import Currency
 from multiprocessing import Process
 
 from app import create_app
+# from app.routes.assistant_routes import UPLOAD_FOLDER
 
 
 app = create_app()
@@ -57,4 +58,5 @@ def update_currency():
 
 
 if __name__ == '__main__':
+	app.secret_key = "super secret key"
 	app.run(debug=True)

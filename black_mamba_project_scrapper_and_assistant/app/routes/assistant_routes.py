@@ -10,21 +10,21 @@ from flask import (
     flash,
     send_from_directory,
 )
+from flask import current_app as app
 from flask_docs import ApiDoc
+from flask_login import login_required
 import pathlib as pl
 import os
 from sqlalchemy.orm import sessionmaker
 from werkzeug.utils import secure_filename
-import check
-from models import Person, Phones, Address, Files, GoogleFiles, create_db
+from app import check
+from app.db_models_assistant import Person, Phones, Address, Files, GoogleFiles, create_db
 import itertools
 
 
 FOLDER_ID = ""
 directory = "uploads"
-current_path = os.getcwd()
-ful_path = os.path.abspath(os.path.join(current_path, os.pardir))
-UPLOAD_FOLDER = os.path.abspath(os.path.join(ful_path, directory))
+UPLOAD_FOLDER = os.path.abspath(os.path.join(os.getcwd(), directory))
 LIST_OF_AUDIO_SUFFIX = ["MP3", "OGG", "WAV", "AMR"]
 LIST_OF_ARCHIVES_SUFFIX = ["ZIP", "GZ", "TAR"]
 LIST_OF_IMAGES_SUFFIX = ["JPEG", "PNG", "JPG", "SVG"]
@@ -64,11 +64,10 @@ engine = create_engine(
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-app = Flask(__name__)
-
 
 @app.route("/files/<id>", methods=["POST", "GET"], strict_slashes=False)
 @app.route("/files_show/<id>", methods=["GET"], strict_slashes=False)
+@login_required
 def files(id):
     if request.method == "POST":
         files_all = session.query(Files).filter(Files.person_id == id).all()
@@ -100,14 +99,15 @@ def files(id):
                     list_of_all_files.append(["documents", file])
         list_of_all_files = sorted(list_of_all_files, key=lambda days: days[0])
         # return render_template("contact-details.html", person=person)
-        return render_template("files.html", files=list_of_all_files)
+        return render_template("assistant_templates/files.html", files=list_of_all_files)
     if request.method == "GET":
-        return render_template("files.html")
+        return render_template("assistant_templates/files.html")
 
 
 # contact contact details page
 @app.route("/contacts", methods=["POST"], strict_slashes=False)
 @app.route("/contact-details/", methods=["GET"], strict_slashes=False)
+@login_required
 # find contact
 def finding_contacts():
     if request.method == "POST":
@@ -127,32 +127,33 @@ def finding_contacts():
                     files_list.append(file)
 
         if person_list and not files_list:
-            return render_template("contacts.html", persons=person_list)
+            return render_template("assistant_templates/contacts.html", persons=person_list)
 
         if files_list and not person_list:
-            return render_template("contacts.html", information_name=files_list)
+            return render_template("assistant_templates/contacts.html", information_name=files_list)
 
         if finding_name and not person_list:
             return render_template(
-                "contacts.html",
+                "assistant_templates/contacts.html",
                 information_name_warning=f"Sorry no {finding_name} in persons name",
             )
 
         if finding_file_name and not files_list:
             return render_template(
-                "contacts.html",
+                "assistant_templates/contacts.html",
                 information_name_warning=f"Sorry no {finding_file_name} in persons files",
             )
 
         if files_list and person_list:
             return render_template(
-                "contacts.html", persons=person_list, information_name=files_list
+                "assistant_templates/contacts.html", persons=person_list, information_name=files_list
             )
         if not finding_file_name and not finding_name:
-            return render_template("contacts.html")
+            return render_template("assistant_templates/contacts.html")
 
 
 @app.route("/birthday", methods=["GET"], strict_slashes=False)
+@login_required
 def days_to_birthday():
     persons_with_birthday = session.query(Person).all()
     current_time = datetime.now()
@@ -180,37 +181,40 @@ def days_to_birthday():
             sorted_list = sorted(
                 list_of_contacts_with_birthday, key=lambda days: days[1]
             )
-        return render_template("birthday.html", persons=sorted_list)
+        return render_template("assistant_templates/birthday.html", persons=sorted_list)
     else:
-        return render_template("birthday.html")
+        return render_template("assistant_templates/birthday.html")
 
 
 # contact index page
 @app.route("/contacts", methods=["GET"], strict_slashes=False)
+@login_required
 # all contacts showing
 def showing_contacts():
     if request.method == "GET":
         persons = session.query(Person).all()
         if persons:
             return render_template(
-                "contacts.html", persons=persons, information_name=None
+                "assistant_templates/contacts.html", persons=persons, information_name=None
             )
         else:
-            return render_template("contacts.html")
+            return render_template("assistant_templates/contacts.html")
 
 
 # information about contact details
 # @app.route("/contact-details/<id>", strict_slashes=False)
 @app.route("/contact-information/<person_id>", methods=["GET"], strict_slashes=False)
+@login_required
 def contacts(person_id):
     person = session.query(Person).filter(Person.id == person_id).first()
     # return render_template("contact-details.html", person=person)
-    return render_template("contact-information_.html", person=person)
+    return render_template("assistant_templates/contact-information_.html", person=person)
 
 
 # contact adding
 @app.route("/contact-information/", methods=["GET", "POST"], strict_slashes=False)
 @app.route("/contact-information/<id>", methods=["GET", "POST"], strict_slashes=False)
+@login_required
 # adding person and details
 def add_person_and_details():
     excist = 0
@@ -344,7 +348,7 @@ def add_person_and_details():
         return redirect("/contacts")
     if request.method == "GET":
 
-        return render_template("contact-information_.html", person=None)
+        return render_template("assistant_templates/contact-information_.html", person=None)
 
 
 def allowed_file(filename):
@@ -353,6 +357,7 @@ def allowed_file(filename):
 
 
 @app.route("/uploads/<person_id>", methods=["GET", "POST"], strict_slashes=False)
+@login_required
 # adding person and details
 def upload_file(person_id):
     person_data = session.query(Person).filter(Person.id == person_id).first()
@@ -475,12 +480,14 @@ def upload_file(person_id):
 
 
 @app.route("/download_file/<file_id>")
+@login_required
 def download_file(file_id):
     file = session.query(Files).filter(Files.id == file_id).first()
     return send_from_directory(file.file_storage_path, f"{file.file_name}.{file.file_extension}")
 
 
 @app.route("/contact-delete/<id>", strict_slashes=False)
+@login_required
 def delete(id):
     session.query(Person).filter(Person.id == id).delete()
     session.commit()
@@ -488,6 +495,7 @@ def delete(id):
 
 
 @app.route("/phone-delete/<id>", strict_slashes=False)
+@login_required
 def delete_phone(id):
     session.query(Phones).filter(Phones.id == id).delete()
     session.commit()
@@ -495,6 +503,7 @@ def delete_phone(id):
 
 
 @app.route("/phones/<id>", methods=["GET", "POST"], strict_slashes=False)
+@login_required
 def edit_phone(id):
 
     if request.method == "POST":
@@ -507,13 +516,5 @@ def edit_phone(id):
 
     else:
         old_phone = session.query(Phones).filter(Phones.id == id).first()
-        return render_template("phones.html", phone=old_phone.phone)
+        return render_template("assistant_templates/phones.html", phone=old_phone.phone)
 
-
-if __name__ == "__main__":
-    app.secret_key = "super secret key"
-    # app.config['SESSION_TYPE'] = "filesystem"
-    app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-    app.debug = True
-    app.env = "development"
-    app.run()
