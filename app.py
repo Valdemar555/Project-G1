@@ -1,30 +1,30 @@
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
 from datetime import datetime
 from sqlalchemy import create_engine
 from flask import (
     Flask,
     render_template,
     request,
-    redirect,    
+    redirect,
     flash,
     send_from_directory,
 )
+from flask_docs import ApiDoc
 import pathlib as pl
 import os
 from sqlalchemy.orm import sessionmaker
 from werkzeug.utils import secure_filename
 import check
-from models import Person, Phones, Address, Files, Note, Tag, create_db
+from models import Person, Phones, Address, Files, Note, Tag, GoogleFiles, create_db
 import itertools
 
-create_db()
 
+FOLDER_ID = ""
 directory = "uploads"
 current_path = os.getcwd()
-ful_path= os.path.abspath(os.path.join(current_path, os.pardir))
+ful_path = os.path.abspath(os.path.join(current_path, os.pardir))
 UPLOAD_FOLDER = os.path.abspath(os.path.join(ful_path, directory))
-
-
-
 LIST_OF_AUDIO_SUFFIX = ["MP3", "OGG", "WAV", "AMR"]
 LIST_OF_ARCHIVES_SUFFIX = ["ZIP", "GZ", "TAR"]
 LIST_OF_IMAGES_SUFFIX = ["JPEG", "PNG", "JPG", "SVG"]
@@ -41,6 +41,23 @@ ALLOWED_EXTENSIONS = list(
         LIST_OF_ARCHIVES_SUFFIX,
     )
 )
+
+create_db()
+gauth = GoogleAuth()
+gauth.LoadCredentialsFile("mycreds.txt")
+if gauth.credentials is None:
+    # Authenticate if they're not there
+    gauth.LocalWebserverAuth()
+elif gauth.access_token_expired:
+    # Refresh them if expired
+    gauth.Refresh()
+else:
+    # Initialize the saved creds
+    gauth.Authorize()
+# Save the current credentials to a file
+gauth.SaveCredentialsFile("mycreds.txt")
+
+
 engine = create_engine(
     "sqlite:///contacts.db", connect_args={"check_same_thread": False}
 )
@@ -49,39 +66,44 @@ session = DBSession()
 
 app = Flask(__name__)
 
+
 @app.route("/files/<id>", methods=["POST", "GET"], strict_slashes=False)
 @app.route("/files_show/<id>", methods=["GET"], strict_slashes=False)
 def files(id):
     if request.method == "POST":
         files_all = session.query(Files).filter(Files.person_id == id).all()
-        audio = bool(request.form.get('audio'))
-        archives = bool(request.form.get('archives'))
-        images = bool(request.form.get('images'))
-        video = bool(request.form.get('video'))
-        documents = bool(request.form.get('documents'))
-        all = bool(request.form.get('all'))
-        list_of_all_files=[]
+        audio = bool(request.form.get("audio"))
+        archives = bool(request.form.get("archives"))
+        images = bool(request.form.get("images"))
+        video = bool(request.form.get("video"))
+        documents = bool(request.form.get("documents"))
+        all = bool(request.form.get("all"))
+        list_of_all_files = []
 
         if all:
             for file in files_all:
                 list_of_all_files.append(["All files", file])
-        else: 
+        else:
             for file in files_all:
-                if  audio and  file.file_extension.upper() in  LIST_OF_AUDIO_SUFFIX:
+                if audio and file.file_extension.upper() in LIST_OF_AUDIO_SUFFIX:
                     list_of_all_files.append(["audio", file])
-                if  archives and  file.file_extension.upper() in  LIST_OF_ARCHIVES_SUFFIX:
+                if archives and file.file_extension.upper() in LIST_OF_ARCHIVES_SUFFIX:
                     list_of_all_files.append(["archives", file])
-                if  images and  file.file_extension.upper() in  LIST_OF_IMAGES_SUFFIX:
+                if images and file.file_extension.upper() in LIST_OF_IMAGES_SUFFIX:
                     list_of_all_files.append(["images", file])
-                if  video and  file.file_extension.upper() in  LIST_OF_VIDEO_SUFFIX:
+                if video and file.file_extension.upper() in LIST_OF_VIDEO_SUFFIX:
                     list_of_all_files.append(["video", file])
-                if  documents and  file.file_extension.upper() in  LIST_OF_DOCUMENTS_SUFFIX:
+                if (
+                    documents
+                    and file.file_extension.upper() in LIST_OF_DOCUMENTS_SUFFIX
+                ):
                     list_of_all_files.append(["documents", file])
-        list_of_all_files = sorted(list_of_all_files, key=lambda days: days[0])                
-    # return render_template("contact-details.html", person=person)
+        list_of_all_files = sorted(list_of_all_files, key=lambda days: days[0])
+        # return render_template("contact-details.html", person=person)
         return render_template("files.html", files=list_of_all_files)
     if request.method == "GET":
-        return render_template("files.html")    
+        return render_template("files.html")
+
 
 # contact contact details page
 @app.route("/contacts", methods=["POST"], strict_slashes=False)
@@ -155,12 +177,12 @@ def days_to_birthday():
                     list_of_contacts_with_birthday.append(
                         [person_birthday.name, b, person_birthday.id]
                     )
-                sorted_list = sorted(
-                    list_of_contacts_with_birthday, key=lambda days: days[1]
-                )
+            sorted_list = sorted(
+                list_of_contacts_with_birthday, key=lambda days: days[1]
+            )
         return render_template("birthday.html", persons=sorted_list)
     else:
-       return render_template("birthday.html")     
+        return render_template("birthday.html")
 
 
 # contact index page
@@ -175,7 +197,6 @@ def showing_contacts():
             )
         else:
             return render_template("contacts.html")
-
 
 
 # information about contact details
@@ -195,16 +216,15 @@ def add_person_and_details():
     excist = 0
     if request.method == "POST":
         person_name = request.form.get("name")
-        
-        #check birthday
+
+        # check birthday
         raw_birthday = request.form.get("birthday")
-        
-        person_birthday=raw_birthday
-        #check phones
+
+        person_birthday = raw_birthday
+        # check phones
         raw_phone = request.form.get("phones")
 
-        
-        #check emails
+        # check emails
         raw_email = request.form.get("email")
 
         person_country = request.form.get("country")
@@ -227,16 +247,16 @@ def add_person_and_details():
                     person.birthday = dt_birthday
 
                 if raw_phone:
-                    phone=check.PhoneParser()
+                    phone = check.PhoneParser()
                     phone.string = raw_phone
                     person_phone = phone.parse_string()
-                    if person.phones:                    
+                    if person.phones:
                         person.phones.append(Phones(phone=person_phone))
                     if not person.phones:
                         person.phones = [(Phones(phone=person_phone))]
 
                 if raw_email:
-                    email=check.EmailParser()
+                    email = check.EmailParser()
                     email.string = raw_email
                     person_email = email.parse_string()
                     person.email = person_email
@@ -291,16 +311,16 @@ def add_person_and_details():
                 session.add(person)
 
             if raw_phone:
-                phone=check.PhoneParser()
+                phone = check.PhoneParser()
                 phone.string = raw_phone
-                person_phone = phone.parse_string()                
-                person.phones.append(Phones(phone=person_phone))                
+                person_phone = phone.parse_string()
+                person.phones.append(Phones(phone=person_phone))
                 session.add(person)
 
             if raw_email:
-                email=check.EmailParser()
+                email = check.EmailParser()
                 email.string = raw_email
-                person_email = email.parse_string()                
+                person_email = email.parse_string()
                 person.email = person_email
 
             if (
@@ -335,10 +355,35 @@ def allowed_file(filename):
 @app.route("/uploads/<person_id>", methods=["GET", "POST"], strict_slashes=False)
 # adding person and details
 def upload_file(person_id):
+    person_data = session.query(Person).filter(Person.id == person_id).first()
+    drive = GoogleDrive(gauth)
+    if not person_data.folder_id:
+        folder_metadata = {
+            "title": f"{person_id}uploads",
+            "mimeType": "application/vnd.google-apps.folder",
+        }
+        folder = drive.CreateFile(folder_metadata)
+        folder.Upload()
+        folderlist = drive.ListFile(
+            {"q": "mimeType='application/vnd.google-apps.folder' and trashed=false"}
+        ).GetList()
+        titlelist = [x["title"] for x in folderlist]
+        # print(person_id)
+        # print(folderlist)
+        # print(titlelist)
+        if f"{person_id}uploads" in titlelist:
+            for item in folderlist:
+                if str(item["title"]) == f"{person_id}uploads":
+                    person_data.folder_id = item["id"]
+                    session.add(person_data)
+                    session.commit()
     if request.method == "POST" and int(person_id):
-        path = pl.Path(UPLOAD_FOLDER)               
+        path = pl.Path(UPLOAD_FOLDER)
         if not path.exists():
             os.mkdir(path)
+        user_path = pl.Path(os.path.join(UPLOAD_FOLDER, f"{person_id}uploads"))
+        if not user_path.exists():
+            os.mkdir(user_path)
 
         if "file" not in request.files:
             flash("Не могу прочитать файл")
@@ -347,35 +392,74 @@ def upload_file(person_id):
         if file.filename == "":
             flash("Нет выбранного файла")
             return redirect(request.url)
-        if file and allowed_file(file.filename):            
+        if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            file.save(os.path.join(UPLOAD_FOLDER, filename))
+            file.save(os.path.join(user_path, filename))
             person = session.query(Person).filter(Person.id == person_id).first()
+            drive = GoogleDrive(gauth)
+            folder_metadata = {
+                "title": user_path,
+                "mimeType": "application/vnd.google-apps.folder",
+            }
+            folder = drive.CreateFile(folder_metadata)
+            gfile = drive.CreateFile(
+                {"parents": [{"kind": "drive#fileLink", "id": person.folder_id}]}
+            )
+            realpath = os.getcwd()
+            os.chdir(user_path)
+            gfile.SetContentFile(f"{filename}")
+            gfile.Upload()
+            os.chdir(realpath)            
             if person.data:
                 person.data.append(
                     Files(
                         file_name=file.filename.rsplit(".", 1)[0].lower(),
                         file_extension=file.filename.rsplit(".", 1)[1].lower(),
-                        file_storage_path=UPLOAD_FOLDER,
+                        file_storage_path=str(user_path),
                     )
                 )
+
             if not person.data:
+                fileList = drive.ListFile({"q": f"'{person.folder_id}' in parents and trashed=false"}).GetList()
                 person.data = [
                     (
                         Files(
                             file_name=file.filename.rsplit(".", 1)[0].lower(),
                             file_extension=file.filename.rsplit(".", 1)[1].lower(),
-                            file_storage_path=UPLOAD_FOLDER,
+                            file_storage_path=str(user_path),
                         )
                     )
                 ]
+            if person.google_data:
+                fileList = drive.ListFile({"q": f"'{person.folder_id}' in parents and trashed=false"}).GetList()
+                for files in fileList:
+                    if files["title"] == f"{file.filename}":
+                        fileID1 = files["id"]
+                        person.google_data.append(
+                            GoogleFiles(
+                                file_name=file.filename.rsplit(".", 1)[0].lower(),
+                                file_extension=file.filename.rsplit(".", 1)[1].lower(),
+                                file_id=fileID1,
+                            )
+                        )
+            if not person.google_data:
+                for files in fileList:
+                    if files["title"] == f"{file.filename}":
+                        fileID2 = files["id"]
+                        person.google_data = [
+                            (
+                                GoogleFiles(
+                                    file_name=file.filename.rsplit(".", 1)[0].lower(),
+                                    file_extension=file.filename.rsplit(".", 1)[1].lower(),
+                                    file_id=fileID2,
+                                )
+                            )
+                        ]
 
             session.add(person)
             session.commit()
-       
-        
             return redirect("/contacts")
-        
+
         if file and not allowed_file(file.filename):
             return "Расширение не поддерживается"
     return """
@@ -390,16 +474,17 @@ def upload_file(person_id):
     """
 
 
-@app.route("/download_file/<name>")
-def download_file(name):
-    return send_from_directory(app.config["UPLOAD_FOLDER"], name)
+@app.route("/download_file/<file_id>")
+def download_file(file_id):
+    file = session.query(Files).filter(Files.id == file_id).first()
+    return send_from_directory(file.file_storage_path, f"{file.file_name}.{file.file_extension}")
 
 
 @app.route("/contact-delete/<id>", strict_slashes=False)
 def delete(id):
     session.query(Person).filter(Person.id == id).delete()
     session.commit()
-    return redirect("/")
+    return redirect("/contacts")
 
 
 @app.route("/phone-delete/<id>", strict_slashes=False)
