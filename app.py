@@ -573,7 +573,7 @@ def note_edit(note_id):
         old_note.tags = tags_obj
         session.add(old_note)
         session.commit()
-        return render_template('note-information.html')
+        return redirect('/note-information')
     else:
         tags1 = session.query(Tag).all()
 

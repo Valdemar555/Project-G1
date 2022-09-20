@@ -33,5 +33,28 @@
                         </div>
                     </div>
                 </form>
+                <form method="GET">
+                    <div class="container">
+                        <label>Find note name</label>
+                        <input type="text" name="find_note" />
+                        <label>Find tag</label>
+                        <input type="text" name="find_tag" />
+                        <br>
+                        <div class="grid">
+                            <button type="reset">Reset</button>
+                            <button type="submit">Submit</button>
+                        </div>
+                    </div>
+                </form>
+                    {%if information %} {{information}} {% endif %}
+                    {%if info_note %} {% for i in info_note%}
+                    Find {{i.name}}
+                    {%endfor %}
+                    {% endif %}
+                    {%if info_tag %} {% for i in info_tag%}
+                    Find {{i.name}}
+                    {%endfor %}
+                    {% endif %}
+                
             </div>
     </body>
