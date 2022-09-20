@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>NEWS_CATEGORIES</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css"
+    />
+  </head>
+  <body>
+    <main class="container">
+      <nav
+        style="margin-bottom: 20px; border-bottom: 2px solid; padding-left: 30px"
+      >
+        <ul>
+          <li><a href="/index" role="button"> Return to main page </a></li>
+        </ul>
+        <ul>
+          <li><a href="/logout" role="button"> Logout from account {{current_user.nickname}} </a></li>
+        </ul>
+      </nav>
+      <nav
+        style="margin-bottom: 20px; border-bottom: 2px solid; padding-left: 30px"
+      >
+        <ul>
+          <li><a href="/fintech/update_parameters" role="button">Update fintech data</a></li>
+        </ul>
+        <ul>
+          <li><a href="/fintech/get_all_data/" role="button">Get all data</a></li>
+        </ul>
+        <ul>
+          <li><a href="/fintech/choose_subject/" role="button">Sort by subject</a></li>
+        </ul>
+        <ul>
+          <li><a href="/fintech/choose_language/" role="button">Sort by language</a></li>
+        </ul>
+        <ul>
+          <li><a href="/fintech/order_by_date/" role="button">Order by date</a></li>
+        </ul>
+        <ul>
+          <li><a href="/fintech/delete_all_data/" role="button">Delete all data</a></li>
+        </ul>
+      </nav>
+      <nav
+        style="margin-bottom: 20px; border-bottom: 2px solid; padding-left: 30px"
+      >
+        <ul>
+          <li><a href="/update_currency/" role="button">Update currency data</a></li>
+        </ul>
+        <ul>
+          <li><a href="/currency/get_by_bank/" role="button">Filter by bank</a></li>
+        </ul>
+        <ul>
+          <li><a href="/currency/get_by_currency/" role="button">Filter by currency</a></li>
+        </ul>
+        <ul>
+          <li><a href="/currency/get_by_bank_and_currency/" role="button">Filter by bank and currency</a></li>
+        </ul>
+        <ul>
+          <li><a href="/currency/delete_all_data/" role="button">Delete all data</a></li>
+        </ul>
+      </nav>
+    </main>
+  </body>
+</html>

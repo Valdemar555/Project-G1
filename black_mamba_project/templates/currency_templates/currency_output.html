@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CURRENCY_OUTPUT</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css"
+    />
+  </head>
+  <body>
+    <main class="container">
+      <nav
+        style="margin-bottom: 20px; border-bottom: 2px solid; padding-left: 30px"
+      >
+        <ul>
+          <li><a href="/scrapper" role="button"> Go back to the main page </a></li>
+        </ul>
+      </nav>
+  
+      <h1>Currencies {{name}}</h1>
+
+      <table>
+        <tbody>
+          <tr>
+            <th><b>Name</th>
+            <th><b>Buy value</th>
+            <th><b>Sale value</th>
+            <th><b>Last update</th>
+          </tr>
+
+          {% for key, val in values.items() %}
+
+            <tr>
+              <td>{{key}}</td>
+              <td>{{val[0]}}</td>
+              <td>{{val[1]}}</td>
+              <td>{{val[2]}}</td>
+            </tr>
+
+          {% endfor %}
+
+        </tbody>
+      </table>  
+    </main>
+  </body>
+</html>
