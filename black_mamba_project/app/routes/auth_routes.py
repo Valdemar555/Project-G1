@@ -20,10 +20,15 @@ def signup():
     email = request.form.get('email')
     password = request.form.get('password')
 
-    user = db.session.query(User).filter_by(email=email).first()
+    user_email = db.session.query(User).filter_by(email=email).first()
+    user_nickname = db.session.query(User).filter_by(nickname=nickname).first()
 
-    if user:
+    if user_email:
         flash('Email address already exists')
+        return redirect('/signup_form')
+
+    if user_nickname:
+        flash('Nickname already exists')
         return redirect('/signup_form')
     
     user = User(nickname=nickname, email=email, password=generate_password_hash(password, method='sha256'))
