@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>FINTECH_UPDATE_PARAMETERS</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css"
+    />
+  </head>
+  <body>
+    <main class="container">
+      <nav
+        style="margin-bottom: 20px; border-bottom: 2px solid; padding-left: 30px"
+      >
+        <ul>
+          <li><a href="/logout" role="button"> Logout from account {{current_user.nickname}} </a></li>
+        </ul>
+      </nav>
+      <nav
+        style="margin-bottom: 20px; border-bottom: 2px solid; padding-left: 30px"
+      >
+        <ul>
+          <li><a href="/scrapper" role="button"> Go back to the main page </a></li>
+        </ul>
+      </nav>
+      <form method="POST" action="/fintech/update/">
+        <div style="padding: 7px">
+          <select name=lang>
+            {% for lang in langs %}
+              <option value= "{{lang}}" SELECTED>{{lang}} </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div style="padding: 7px">
+          <select name=max_page>
+            {% for i in range(max_pages) %}
+              <option value= "{{i + 1}}" SELECTED>{{i + 1}} </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="grid">
+          <button type="reset" class="secondary">Reset</button>
+          <button type="submit">Submit</button>
+        </div>
+      </form>
+    </main>
+  </body>
+</html>

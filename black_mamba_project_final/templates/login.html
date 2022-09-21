@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>LOGIN</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css"
+    />
+  </head>
+  <body>
+    <main class="container">
+      <nav
+        style="margin-bottom: 20px; border-bottom: 2px solid; padding-left: 30px"
+      >
+        <ul>
+          <li><a href="/signup_form" role="button"> Go to sign_up page </a></li>
+        </ul>
+      </nav>
+
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="notification is-danger">
+          {{ messages[0] }}
+        </div>
+      {% endif %}
+      {% endwith %}
+
+      <form method="POST" action="/login">
+        <div style="padding: 7px">
+          <label
+            >Email:
+            <input type="text" name="email" placeholder="Email" required />
+          </label>
+          <label
+            >Password:
+            <input type="text" name="password" placeholder="Password" required />
+          </label>
+        </div>
+        <div class="field">
+          <label class="checkbox">
+            <input type="checkbox" name="remember">Remember me
+          </label>
+        <div class="grid">
+          <button type="submit">Login</button>
+        </div>
+      </form>
+    </main>
+  </body>
+</html>

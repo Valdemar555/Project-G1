@@ -1,0 +1,9 @@
+flask
+sqlalchemy
+flask_sqlalchemy
+flask_migrate
+scrapy
+flask-login
+flask_docs
+pydrive
+mysqlconnector
