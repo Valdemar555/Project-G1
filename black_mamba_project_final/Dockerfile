@@ -4,7 +4,7 @@ COPY . /black_mamba_project_final
 
 WORKDIR /black_mamba_project_final
 
-RUN pip install -r /HW_3/requirements.txt
+RUN pip install -r /black_mamba_project_final/requirements.txt
 RUN flask db init
 RUN flask bd migrate
 

@@ -13,7 +13,7 @@ services:
 
 
   app:
-    build: /black_mamba_project_final
+    build: .
 
     depends_on:
       - black_mamba_sql
