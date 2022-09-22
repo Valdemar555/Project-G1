@@ -1,6 +1,6 @@
 from flask import request, render_template
 from flask_login import login_required, current_user
-
+import os
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 
@@ -14,7 +14,8 @@ from app import create_app
 
 app = create_app()
 app.app_context().push()
-
+directory = "uploads"
+UPLOAD_FOLDER = os.path.abspath(os.path.join(os.getcwd(), directory))
 
 def run_spider(spider, category):
 	crawler = CrawlerProcess(get_project_settings())
@@ -60,4 +61,5 @@ def update_currency():
 if __name__ == '__main__':
 	app.secret_key = "super secret key"
 	app.env = "development"
-	app.run(debug=True)
+	app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+	app.run(debug=True, host="0.0.0.0")

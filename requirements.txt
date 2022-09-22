@@ -6,4 +6,5 @@ scrapy
 flask-login
 flask_docs
 pydrive
-mysqlconnector
+mysql-connector
+mysqlclient

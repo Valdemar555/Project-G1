@@ -12,7 +12,9 @@ CURRENCY_BASE_URL = 'https://minfin.com.ua'
 class Config:
 	
 	# DATABASE
-	SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:password@localhost/news_scrapper'
+	#SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:password@localhost/news_scrapper'
+	#SQLALCHEMY_DATABASE_URI = 'mysql://root:password@127.0.0.1:3306/news_scrapper'
+	SQLALCHEMY_DATABASE_URI = 'mysql://root:password@172.17.0.1/news_scrapper'
 	SQLALCHEMY_ECHO = True
 	SQLALCHEMY_TRACK_MODIFICATIONS = False
 

@@ -8,7 +8,7 @@ from flask import (
     request,
     redirect,
     flash,
-    send_from_directory,
+    send_from_directory
 )
 from flask import current_app as app
 from flask_docs import ApiDoc
@@ -418,48 +418,48 @@ def upload_file(person_id):
             if person.data:
                 person.data.append(
                     Files(
-                        file_name=file.filename.rsplit(".", 1)[0].lower(),
-                        file_extension=file.filename.rsplit(".", 1)[1].lower(),
+                        file_name=file.filename.rsplit(".", 1)[0],
+                        file_extension=file.filename.rsplit(".", 1)[1],
                         file_storage_path=str(user_path),
                     )
                 )
 
             if not person.data:
-                fileList = drive.ListFile({"q": f"'{person.folder_id}' in parents and trashed=false"}).GetList()
+                
                 person.data = [
                     (
                         Files(
-                            file_name=file.filename.rsplit(".", 1)[0].lower(),
-                            file_extension=file.filename.rsplit(".", 1)[1].lower(),
+                            file_name=file.filename.rsplit(".", 1)[0],
+                            file_extension=file.filename.rsplit(".", 1)[1],
                             file_storage_path=str(user_path),
                         )
                     )
                 ]
             if person.google_data:
-                fileList = drive.ListFile({"q": f"'{person.folder_id}' in parents and trashed=false"}).GetList()
-                for files in fileList:
+                fileList2 = drive.ListFile({"q": f"'{person.folder_id}' in parents and trashed=false"}).GetList()
+                for files in fileList2:
                     if files["title"] == f"{file.filename}":
                         fileID1 = files["id"]
                         person.google_data.append(
                             GoogleFiles(
-                                file_name=file.filename.rsplit(".", 1)[0].lower(),
-                                file_extension=file.filename.rsplit(".", 1)[1].lower(),
+                                file_name=file.filename.rsplit(".", 1)[0],
+                                file_extension=file.filename.rsplit(".", 1)[1],
                                 file_id=fileID1,
                             )
                         )
             if not person.google_data:
-                for files in fileList:
+                fileList3 = drive.ListFile({"q": f"'{person.folder_id}' in parents and trashed=false"}).GetList()
+                for files in fileList3:
                     if files["title"] == f"{file.filename}":
                         fileID2 = files["id"]
                         person.google_data = [
                             (
                                 GoogleFiles(
-                                    file_name=file.filename.rsplit(".", 1)[0].lower(),
-                                    file_extension=file.filename.rsplit(".", 1)[1].lower(),
+                                    file_name=file.filename.rsplit(".", 1)[0],
+                                    file_extension=file.filename.rsplit(".", 1)[1],
                                     file_id=fileID2,
                                 )
-                            )
-                        ]
+                                  )           ]
 
             session.add(person)
             session.commit()
@@ -479,11 +479,13 @@ def upload_file(person_id):
     """
 
 
-@app.route("/download_file/<file_id>")
+@app.route("/download-file/<file_id>")
 @login_required
 def download_file(file_id):
     file = session.query(Files).filter(Files.id == file_id).first()
-    return send_from_directory(file.file_storage_path, f"{file.file_name}.{file.file_extension}")
+    user_path_download = pl.Path(os.path.join(UPLOAD_FOLDER, f"{file.person_id}uploads"))
+
+    return send_from_directory(user_path_download, f"{file.file_name}.{file.file_extension}")
 
 
 @app.route("/contact-delete/<id>", strict_slashes=False)

@@ -13,10 +13,20 @@ services:
 
 
   app:
-    build: .
-
-    depends_on:
-      - black_mamba_sql
+    image: dmytrochernyshev/bmt:v5
+    container_name: black_mamba_new
+    ports:
+      - "5000:5000"   
+    environment:
+      - SQLALCHEMY_DATABASE_URI=mysql://root:password@172.17.0.1/news_scrapper
+      - GUNICORN_TIMEOUT=60
+      - GUNICORN_WORKERS=2
+      - GUNICORN_LOGLEVEL=DEBUG
+      - OFFLINE_MODE=False # True for offline, False for external resources
+    #build: 
+      #dockerfile: Dockerfile
+    #depends_on:
+      #- black_mamba_sql
 
 
 
