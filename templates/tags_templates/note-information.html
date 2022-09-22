@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css" />
+    <title>Home page</title>
+</head>
+
+<body>
+    <div class="container">
+        <nav style="margin-bottom: 20px; padding-left: 30px">
+            <a href="/logout">Logout from account {{ current_user.nickname }}</a>
+            <a href="/index">Go back to main_page</a>
+        </nav>
+    </div>
+
+    <form method="GET">   
+        <section>
+        <div class="container">
+            <h2>NoteBook</h2>
+            <h3>All your notes</h3>
+            {% if notes %}
+            <div class="container">
+                {% for note in notes %}
+                <div>{{note.name}}</div>
+                <div>
+                    <li>Description: {{note.description}}</li>
+                    <li>Tags: {{ note.tags|join(', ')}}</li>
+                
+                    {% if note.done %} <li>Status: <ins>Complected</ins></li> {% endif %}
+            
+                
+                    {% if not note.done %}
+                    <li>Status: <i>Not complected</i><a
+                            href="{{ url_for('done', id=note.id) }}">Done</a></li>
+                    
+                    
+                    <a href="/edit-note/{{note.id}}">change</a>
+                    <a href="{{ url_for('delete_note', id=note.id) }}">delete</a>
+                    {% endif %}
+                    {% endfor %}
+            {% endif %}
+                     
+            </div>              
+            {% if not notes %}
+            <h4>NO NOTES YET</h4>
+            {% endif %}
+            </div>
+            <a href="/note/" role="button">Add new note</a>
+            <a href="/find-note/" role="button">Find note</a>
+    </section>
+</form>
+</body>
+
+</html>

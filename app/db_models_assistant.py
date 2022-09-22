@@ -9,6 +9,7 @@ from sqlalchemy.sql.schema import ForeignKey, Table
 import pathlib as pl
 from datetime import datetime
 
+
 Base = declarative_base()
 
 
@@ -26,6 +27,8 @@ class Person(Base):
     birthday = Column(DateTime, nullable=True)
     folder_id = Column(String(200))
 
+
+
 class Phones(Base):
     """Information about Person phones"""
 
@@ -33,6 +36,7 @@ class Phones(Base):
     id = Column(Integer, primary_key=True)
     phone = Column(Integer)
     person_id = Column(Integer, ForeignKey("person.id", ondelete="CASCADE"))
+
 
 
 class Address(Base):
@@ -60,7 +64,8 @@ class Files(Base):
     person_id = Column(Integer, ForeignKey("person.id", ondelete="CASCADE"))
 
 
-    """ table for joins many2many"""
+
+""" table for joins many2many"""
 note_m2m_tag = Table(
     "note_m2m_tag",
     Base.metadata,
@@ -68,6 +73,7 @@ note_m2m_tag = Table(
     Column("note", Integer, ForeignKey("notes.id")),
     Column("tag", Integer, ForeignKey("tags.id")),
 )
+
 
 
 class Note(Base):
@@ -81,6 +87,8 @@ class Note(Base):
     tags = relationship("Tag", secondary=note_m2m_tag, backref="notes")
     person_id = Column(Integer, ForeignKey("person.id", ondelete="CASCADE"))
 
+
+
 class Tag(Base):
     """Information about tag"""
     __tablename__ = "tags"
@@ -89,6 +97,8 @@ class Tag(Base):
 
     def __repr__(self) -> str:
         return self.name
+
+
 
 class GoogleFiles(Base):
     """Information about Person files"""
@@ -99,6 +109,7 @@ class GoogleFiles(Base):
     file_extension = Column(String(50))
     file_id = Column(String(100))    
     person_id = Column(Integer, ForeignKey("person.id", ondelete="CASCADE"))
+
 
 
 def create_db():

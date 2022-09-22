@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css" />
+    <title>Note information</title>
+
+<body>
+    <div class="container">
+        <nav style="margin-bottom: 20px; padding-left: 30px">
+            <a href="/note-information">Go back to the note info page</a>
+        </nav>
+    </div>
+    <main class="container">
+        <div>
+            <h1>Add Note</h1>
+            </div>
+            <a href="/tag/" role="button">Add tag</a>
+        </div>
+        <form method="POST">
+        <div>
+                <label>Note title:
+                    <input type="text" name="name" required />
+                </label>
+            </div>
+            <br>
+            <div>
+                <label>Note description:
+                    <input type="text" name="description" required />
+                </label>
+            </div>
+            <br>
+            <div>
+                <label>Select tag:</label>
+                <select name="tags" multiple="multiple" required>
+                    {% for tag in tags %} '
+                    <option value="{{tag.name}}">{{tag.name}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <br>                
+            <div class="grid">
+                <button type="reset">Reset</button>
+                <button type="submit">Submit</button>
+            </div>                
+            </form>     
+        
+    </main>
+</body>

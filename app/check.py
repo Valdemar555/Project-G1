@@ -126,7 +126,7 @@ class EmailParser(Parser):
         email = self.parser.parseString(self.string)
 
         if len(email.local_part) > 64:
-            return print('EmailLengthException')
+            raise ParseException
         else:
             return email.asList()[0]
 
