@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Person information</title>
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css" />
+</head>
+
+<body>
+    <main class="container">
+        <nav style="margin-bottom: 20px; border-bottom: 1px solid; padding-left: 30px">
+            <ul>
+                <li><a href="/note" role="button"> Go back to the main page </a></li>
+            </ul>
+        </nav>
+    <form method="GET">
+        {%if information %} {{information}} {% endif %}
+        {%if info_note %} {% for i in info_note%}
+        Find {{i.name}}
+        {%endfor %}
+        {% endif %}
+        {%if info_tag %} {% for i in info_tag%}
+        Find {{i.name}}
+        {%endfor %}
+        {% endif %}
+    </form>
+    </main>
+</body>
+
+</html>
